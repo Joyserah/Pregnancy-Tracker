@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Verification - Pregnancy Tracker</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        }
+        .logo {
+            font-size: 3em;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+        .subtitle {
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        .email-icon {
+            font-size: 4em;
+            color: #3498db;
+            margin-bottom: 20px;
+        }
+        .verification-form {
+            margin: 30px 0;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-size: 1.2em;
+            text-align: center;
+            letter-spacing: 0.5em;
+            font-weight: bold;
+            transition: border-color 0.3s ease;
+            box-sizing: border-box;
+        }
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            width: 100%;
+            margin-top: 10px;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .resend-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ecf0f1;
+        }
+        .resend-btn {
+            background: #ecf0f1;
+            color: #2c3e50;
+            border: 2px solid #bdc3c7;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+        .resend-btn:hover {
+            background: #bdc3c7;
+            border-color: #95a5a6;
+        }
+        .error-message {
+            background: #fee;
+            color: #e74c3c;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border: 1px solid #fcd0d0;
+        }
+        .success-message {
+            background: #efe;
+            color: #27ae60;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border: 1px solid #d0fcd0;
+        }
+        .instructions {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        .instructions h3 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .instructions ol {
+            margin: 10px 0 0 20px;
+            padding: 0;
+        }
+        .instructions li {
+            margin-bottom: 8px;
+            color: #555;
+        }
+        .back-link {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 10px 15px;
+            border-radius: 5px;
+            background: rgba(255,255,255,0.1);
+            transition: background 0.3s ease;
+        }
+        .back-link:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px 20px;
+            }
+            h1 {
+                font-size: 1.5em;
+            }
+            input[type="text"] {
+                font-size: 1em;
+                letter-spacing: 0.3em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="/register" class="back-link">← Back to Register</a>
+
+    <div class="container">
+        <div class="logo">🤰</div>
+        <h1>Verify Your Email</h1>
+        <p class="subtitle">We've sent a verification code to your email</p>
+
+        <div class="email-icon">📧</div>
+
+        <div class="instructions">
+            <h3>What to do next:</h3>
+            <ol>
+                <li>Check your email at <strong>{{ gmail }}</strong></li>
+                <li>Look for an email from "Puff & Glow"</li>
+                <li>Enter the 6-digit verification code below</li>
+                <li>Click "Verify Code" to complete registration</li>
+            </ol>
+        </div>
+
+        {% if error %}
+        <div class="error-message">
+            ❌ {{ error }}
+        </div>
+        {% endif %}
+
+        <form method="POST" action="/verify" class="verification-form">
+            <div class="form-group">
+                <label for="code">Enter 6-digit verification code:</label>
+                <input type="text" id="code" name="code" maxlength="6" placeholder="000000" required>
+            </div>
+            <button type="submit" class="btn">Verify Code</button>
+        </form>
+
+        <div class="resend-section">
+            <p>Didn't receive the email?</p>
+            <button class="resend-btn" onclick="resendCode()">Resend Verification Code</button>
+            <p style="font-size: 0.9em; color: #7f8c8d; margin-top: 10px;">
+                Check your spam/junk folder if you don't see it in your inbox.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Auto-focus the input field
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('code').focus();
+        });
+
+        // Auto-format the code input
+        document.getElementById('code').addEventListener('input', function(e) {
+            // Remove any non-numeric characters
+            this.value = this.value.replace(/\D/g, '');
+
+            // Auto-submit when 6 digits are entered
+            if (this.value.length === 6) {
+                // Optional: auto-submit the form
+                // this.form.submit();
+            }
+        });
+
+        function resendCode() {
+            // For now, just show an alert. In a real app, you'd make an AJAX call
+            alert('Resend functionality would be implemented here. For now, please re-register.');
+            window.location.href = '/register';
+        }
+
+        // Add some visual feedback
+        const input = document.getElementById('code');
+        input.addEventListener('input', function() {
+            if (this.value.length === 6) {
+                this.style.borderColor = '#27ae60';
+                this.style.boxShadow = '0 0 0 3px rgba(39, 174, 96, 0.1)';
+            } else {
+                this.style.borderColor = '#e1e8ed';
+                this.style.boxShadow = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

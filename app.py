@@ -508,6 +508,7 @@ def verify():
         'gmail': pending['gmail'],
         'recovery': pending['recovery'],
         'email_verified': True,
+        'registration_date': now_et().strftime('%Y-%m-%d %H:%M:%S'),
         'pregnancy_week': None, 
         'vaccines_received': [],
         'completed_tasks': [],
@@ -1290,6 +1291,32 @@ def toggle_hospital_bag():
     save_patients(patients)
     
     return redirect('/dashboard#hospital-bag')
+
+@app.route('/admin/users')
+def admin_users():
+    if 'username' not in session:
+        return redirect('/')
+    
+    # You can add admin user check here if needed
+    # For now, any logged-in user can access (you may want to restrict this)
+    
+    patients = load_patients()
+    user_list = []
+    
+    for username, data in patients.items():
+        user_info = {
+            'username': username,
+            'first_name': data.get('first_name', ''),
+            'last_name': data.get('last_name', ''),
+            'gmail': data.get('gmail', ''),
+            'pregnancy_week': data.get('pregnancy_week', 'Not set'),
+            'due_date': data.get('due_date', 'Not set'),
+            'registration_date': data.get('registration_date', 'Unknown'),
+            'last_login': data.get('last_login', 'Never')
+        }
+        user_list.append(user_info)
+    
+    return render_template('admin_users.html', users=user_list, total_users=len(user_list))
 
 if __name__ == '__main__':
     # Start background scheduler for email reminders
