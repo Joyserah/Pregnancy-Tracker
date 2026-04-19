@@ -9,13 +9,26 @@ from email.mime.multipart import MIMEMultipart
 from apscheduler.schedulers.background import BackgroundScheduler
 import pytz
 
+# Database imports - add these for production
+try:
+    import sqlite3
+    import psycopg2
+    from psycopg2.extras import RealDictCursor
+except ImportError:
+    print("Database libraries not installed. Install with: pip install psycopg2-binary")
+
 ET = pytz.timezone('US/Eastern')
 def now_et():
     return datetime.now(ET)
 
 app = Flask(__name__)
-app.secret_key = 'your-secret-key-change-in-production'
+app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-change-in-production')
 
+# Database configuration
+DATABASE_URL = os.environ.get('DATABASE_URL')  # For PostgreSQL (Render, Heroku)
+DB_TYPE = os.environ.get('DB_TYPE', 'json')  # 'json', 'sqlite', or 'postgres'
+
+# Fallback to local files for development
 DATA_FILE = 'patients.json'
 
 # Email configuration (update with your SMTP settings)
@@ -28,7 +41,9 @@ EMAIL_CONFIG = {
 
 def send_verification_code(email):
     """Send a 6-digit verification code to the email"""
-    code = str(random.randint(100000, 999999))
+    # TEMPORARY: Always use 000000 for testing
+    code = "000000"
+    
     try:
         msg = MIMEText(f'Your Puff & Glow verification code is: {code}')
         msg['Subject'] = '🫁 Puff & Glow - Email Verification'
@@ -128,14 +143,131 @@ def auto_update_pregnancy_week(patient):
         pass
 
 def load_patients():
-    if os.path.exists(DATA_FILE):
-        with open(DATA_FILE, 'r') as f:
-            return json.load(f)
-    return {}
+    """Load patients from database based on DB_TYPE"""
+    if DB_TYPE == 'postgres' and DATABASE_URL:
+        try:
+            conn = psycopg2.connect(DATABASE_URL)
+            cur = conn.cursor(cursor_factory=RealDictCursor)
+            cur.execute("SELECT * FROM patients")
+            rows = cur.fetchall()
+            cur.close()
+            conn.close()
+            # Convert to dict format
+            patients = {}
+            for row in rows:
+                username = row['username']
+                patients[username] = dict(row)
+                # Remove username from the data dict since it's the key
+                del patients[username]['username']
+            return patients
+        except Exception as e:
+            print(f"Database error: {e}")
+            return {}
+    
+    elif DB_TYPE == 'sqlite':
+        try:
+            conn = sqlite3.connect('patients.db')
+            conn.row_factory = sqlite3.Row
+            cur = conn.cursor()
+            cur.execute("SELECT * FROM patients")
+            rows = cur.fetchall()
+            conn.close()
+            # Convert to dict format
+            patients = {}
+            for row in rows:
+                username = row['username']
+                patients[username] = dict(row)
+                del patients[username]['username']
+            return patients
+        except Exception as e:
+            print(f"SQLite error: {e}")
+            return {}
+    
+    else:  # Default to JSON for development
+        if os.path.exists(DATA_FILE):
+            with open(DATA_FILE, 'r') as f:
+                return json.load(f)
+        return {}
 
 def save_patients(patients):
-    with open(DATA_FILE, 'w') as f:
-        json.dump(patients, f, indent=2)
+    """Save patients to database based on DB_TYPE"""
+    if DB_TYPE == 'postgres' and DATABASE_URL:
+        try:
+            conn = psycopg2.connect(DATABASE_URL)
+            cur = conn.cursor()
+            
+            # Clear existing data
+            cur.execute("DELETE FROM patients")
+            
+            # Insert new data
+            for username, data in patients.items():
+                data_copy = data.copy()
+                data_copy['username'] = username
+                columns = ', '.join(data_copy.keys())
+                placeholders = ', '.join(['%s'] * len(data_copy))
+                values = list(data_copy.values())
+                cur.execute(f"INSERT INTO patients ({columns}) VALUES ({placeholders})", values)
+            
+            conn.commit()
+            cur.close()
+            conn.close()
+        except Exception as e:
+            print(f"Database save error: {e}")
+    
+    elif DB_TYPE == 'sqlite':
+        try:
+            conn = sqlite3.connect('patients.db')
+            cur = conn.cursor()
+            
+            # Create table if it doesn't exist
+            cur.execute('''CREATE TABLE IF NOT EXISTS patients (
+                username TEXT PRIMARY KEY,
+                password TEXT,
+                first_name TEXT,
+                last_name TEXT,
+                gmail TEXT,
+                recovery TEXT,
+                email_verified BOOLEAN DEFAULT FALSE,
+                registration_date TEXT,
+                pregnancy_week INTEGER,
+                vaccines_received TEXT,  -- JSON string
+                completed_tasks TEXT,    -- JSON string
+                zipcode TEXT,
+                daily_logs TEXT,         -- JSON string
+                reminder_time TEXT,
+                clinicians TEXT,         -- JSON string
+                next_appointment TEXT,
+                trimester TEXT,
+                month TEXT,
+                hospital_portal_synced BOOLEAN DEFAULT FALSE,
+                chat_messages TEXT,      -- JSON string
+                emergency_contacts TEXT  -- JSON string
+            )''')
+            
+            # Clear existing data
+            cur.execute("DELETE FROM patients")
+            
+            # Insert new data
+            for username, data in patients.items():
+                # Convert lists/dicts to JSON strings for SQLite
+                data_copy = data.copy()
+                for key, value in data_copy.items():
+                    if isinstance(value, (list, dict)):
+                        data_copy[key] = json.dumps(value)
+                
+                columns = ['username'] + list(data_copy.keys())
+                placeholders = ', '.join(['?'] * len(columns))
+                values = [username] + list(data_copy.values())
+                cur.execute(f"INSERT INTO patients ({', '.join(columns)}) VALUES ({placeholders})", values)
+            
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            print(f"SQLite save error: {e}")
+    
+    else:  # Default to JSON for development
+        with open(DATA_FILE, 'w') as f:
+            json.dump(patients, f, indent=2)
 
 def get_vaccine_info():
     return {
