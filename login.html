@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Puff & Glow - Login</title>
+    <style>
+        body { 
+            font-family: Arial; 
+            max-width: 400px; 
+            margin: 50px auto; 
+            padding: 20px; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container { 
+            background: white; 
+            padding: 30px; 
+            border-radius: 10px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+        }
+        h1 { 
+            text-align: center; 
+            color: #667eea; 
+            margin-bottom: 10px;
+        }
+        .tagline {
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 20px;
+        }
+        input { 
+            width: 100%; 
+            padding: 12px; 
+            margin: 10px 0; 
+            box-sizing: border-box; 
+            border: 2px solid #ddd;
+            border-radius: 5px;
+        }
+        button { 
+            width: 100%; 
+            padding: 12px; 
+            background: #667eea; 
+            color: white; 
+            border: none; 
+            cursor: pointer; 
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 1em;
+        }
+        button:hover { background: #5568d3; }
+        .error { color: red; text-align: center; }
+        a { color: #667eea; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .register-link { text-align: center; margin-top: 15px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🫁✨ Puff & Glow</h1>
+        <p class="tagline">Pregnancy Care for Pulmonary Hypertension</p>
+        {% if mobile %}
+        <p style="text-align: center; color: #667eea; font-weight: bold;">📱 Mobile Version</p>
+        {% endif %}
+        <h2 style="text-align: center; color: #333;">Login</h2>
+        {% if error %}
+        <p class="error">{{ error }}</p>
+        {% endif %}
+        <form method="POST" action="/login">
+            {% if mobile %}
+            <input type="hidden" name="mobile" value="true">
+            {% endif %}
+            <input type="text" name="username" placeholder="Username" required>
+            <input type="password" name="password" placeholder="Password" required>
+            <button type="submit">Login</button>
+        </form>
+        <p class="register-link">Don't have an account? <a href="/register">Register here</a></p>
+    </div>
+</body>
+</html>
