@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Puff & Glow - Pregnancy Tracker</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; margin: 0; padding: 0; background: #f8f9fb; color: #374151; line-height: 1.7; -webkit-font-smoothing: antialiased; }
+        .container { min-height: 100vh; }
+
+        /* Nav */
+        .nav-pane { width: 260px; background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%); color: white; position: fixed; top: 0; left: 0; height: 100vh; overflow-y: auto; padding: 28px 0; z-index: 10; border-right: 1px solid rgba(255,255,255,0.05); }
+        .nav-pane::-webkit-scrollbar { width: 4px; }
+        .nav-pane::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+        .nav-pane h2 { padding: 0 24px 20px; margin: 0; font-size: 1.2em; color: #a78bfa; letter-spacing: 0.5px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 12px; }
+        .nav-item { padding: 10px 24px; cursor: pointer; transition: all 0.2s ease; border-left: 3px solid transparent; font-size: 0.88em; color: #94a3b8; letter-spacing: 0.2px; }
+        .nav-item:hover { background: rgba(167,139,250,0.08); border-left-color: #a78bfa; color: #e2e8f0; }
+        .nav-item.active { background: rgba(167,139,250,0.12); border-left-color: #a78bfa; color: #fff; font-weight: 500; }
+
+        /* Main */
+        .main-content { margin-left: 260px; padding: 36px 48px 60px; }
+        .main-content > * { display: block; width: 100%; }
+
+        /* Header */
+        .header { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 32px 36px; border-radius: 18px; color: white; margin-bottom: 32px; box-shadow: 0 8px 30px rgba(102,126,234,0.25); }
+        .header h1 { margin: 0; font-size: 1.9em; font-weight: 700; letter-spacing: -0.5px; }
+
+        /* Quote Banner */
+        .quote-banner { padding: 22px 28px; border-radius: 14px; margin: 0 0 8px; text-align: center; font-size: 1.1em; font-weight: 500; letter-spacing: 0.2px; }
+        .quote-joke { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); color: #92400e; }
+        .quote-inspire { background: linear-gradient(135deg, #d1fae5 0%, #6ee7b7 100%); color: #065f46; }
+
+        /* Sections */
+        .section { scroll-margin-top: 20px; padding: 32px 0; border-bottom: 1px solid #e5e7eb; animation: fadeIn 0.3s ease; }
+        .section:last-child { border-bottom: none; }
+        .section h2 { color: #1e293b; margin: 0 0 16px; font-size: 1.45em; font-weight: 700; letter-spacing: -0.3px; }
+        .section h3 { color: #374151; margin: 0 0 12px; font-size: 1.15em; font-weight: 600; }
+        .section h4 { color: #4b5563; margin: 18px 0 8px; font-weight: 600; }
+        .subsection { margin: 20px 0; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Forms */
+        input[type="number"], input[type="text"], input[type="email"] { padding: 10px 14px; width: 140px; border: 1.5px solid #d1d5db; border-radius: 8px; font-family: inherit; font-size: 0.93em; transition: all 0.2s; background: #fff; }
+        input[type="number"]:focus, input[type="text"]:focus, input[type="email"]:focus { border-color: #667eea; outline: none; box-shadow: 0 0 0 3px rgba(102,126,234,0.12); }
+        input[type="date"], input[type="time"], select { padding: 10px 14px; border: 1.5px solid #d1d5db; border-radius: 8px; margin: 4px; font-family: inherit; font-size: 0.93em; background: #fff; }
+        textarea { border: 1.5px solid #d1d5db; border-radius: 8px; font-family: inherit; padding: 10px 14px; font-size: 0.93em; background: #fff; }
+        textarea:focus, input[type="date"]:focus, input[type="time"]:focus, select:focus { border-color: #667eea; outline: none; box-shadow: 0 0 0 3px rgba(102,126,234,0.12); }
+
+        /* Buttons */
+        button { padding: 10px 24px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; cursor: pointer; border-radius: 8px; font-weight: 600; font-family: inherit; font-size: 0.9em; transition: all 0.25s; letter-spacing: 0.3px; }
+        button:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(102,126,234,0.35); }
+        button:active { transform: translateY(0); }
+        .logout { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .logout:hover { box-shadow: 0 4px 14px rgba(239,68,68,0.35); }
+
+        /* Lists */
+        ul { line-height: 2; padding-left: 20px; }
+        li { margin: 4px 0; }
+
+        /* Checkboxes */
+        input[type="checkbox"] { margin-right: 10px; accent-color: #667eea; width: 17px; height: 17px; cursor: pointer; }
+        input[type="checkbox"]:checked + label { text-decoration: line-through; opacity: 0.45; }
+        label { cursor: pointer; font-size: 0.95em; }
+
+        /* Info Cards */
+        .vaccine-detail { background: #f0f4ff; padding: 16px 18px; margin: 10px 0; border-radius: 12px; border: 1px solid #e0e7ff; transition: box-shadow 0.2s; }
+        .vaccine-detail:hover { box-shadow: 0 2px 12px rgba(102,126,234,0.1); }
+        .vaccine-detail strong { color: #667eea; }
+        .vaccine-detail.highlight { background: #fefce8; border: 2px solid #facc15; }
+        .vaccine-reminder { color: #dc2626; font-size: 0.88em; margin-top: 5px; }
+        .supplement-info { background: #ecfdf5; padding: 16px 18px; margin: 10px 0; border-radius: 12px; border-left: 4px solid #10b981; }
+        .log-entry { background: #fff; padding: 16px 18px; margin: 10px 0; border-radius: 12px; border: 1px solid #e5e7eb; transition: box-shadow 0.2s; }
+        .log-entry:hover { box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .clinician-card { background: #eff6ff; padding: 16px 18px; margin: 10px 0; border-radius: 12px; border: 1px solid #dbeafe; }
+
+        /* Symptoms */
+        .symptom-item { margin: 16px 0; padding: 14px 18px; background: #fff7ed; border-radius: 12px; border: 1px solid #fed7aa; }
+        .symptom-item h4 { margin: 0 0 6px; color: #ea580c; font-weight: 600; }
+        .symptom-item ul { margin: 4px 0 0; }
+
+        /* Telehealth */
+        .telehealth a { color: #667eea; text-decoration: none; font-weight: 500; }
+        .telehealth a:hover { text-decoration: underline; }
+
+        /* Exercise */
+        .exercise-video { display: block; margin: 12px 0; }
+        .exercise-icon { font-size: 2.5em; }
+        .exercise-card { padding: 16px 0; border-bottom: 1px solid #f0f0f0; }
+
+        /* Chat */
+        .chat-container { max-height: 420px; overflow-y: auto; padding-right: 8px; }
+        .chat-container::-webkit-scrollbar { width: 5px; }
+        .chat-container::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
+        .chat-message { padding: 14px 18px; margin: 8px 0; border-radius: 12px; background: #fff; border: 1px solid #e5e7eb; transition: box-shadow 0.2s; }
+        .chat-message:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .chat-message.clinician { background: #eff6ff; border-left: 4px solid #3b82f6; }
+
+        /* Misc */
+        .countdown { font-size: 1.5em; color: #ef4444; font-weight: 700; }
+        .countdown-box { background: #fef2f2; padding: 18px; border-radius: 14px; text-align: center; margin: 12px 0; border: 1px solid #fecaca; }
+        p { margin: 8px 0; }
+        a { color: #667eea; transition: color 0.2s; }
+        a:hover { color: #5558d3; }
+        details { margin: 12px 0; background: #f9fafb; border-radius: 10px; border: 1px solid #e5e7eb; overflow: hidden; }
+        details summary { cursor: pointer; font-weight: 500; padding: 12px 16px; transition: background 0.2s; }
+        details summary:hover { background: #f3f4f6; }
+        details[open] summary { border-bottom: 1px solid #e5e7eb; background: #f3f4f6; }
+        details > *:not(summary) { padding: 0 16px; }
+
+        /* Smooth scroll */
+        html { scroll-behavior: smooth; }
+    </style>
+    <script>
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+        // Highlight nav on scroll
+        window.addEventListener('scroll', function() {
+            var sections = document.querySelectorAll('.section');
+            var navItems = document.querySelectorAll('.nav-item');
+            var current = '';
+            sections.forEach(function(section) {
+                if (window.scrollY >= section.offsetTop - 100) current = section.id;
+            });
+            navItems.forEach(function(item) {
+                item.classList.remove('active');
+                if (item.getAttribute('onclick') && item.getAttribute('onclick').includes("'" + current + "'")) item.classList.add('active');
+            });
+        });
+        function showEditForm(index) {
+            document.getElementById('contact-view-' + index).style.display = 'none';
+            document.getElementById('contact-edit-' + index).style.display = 'block';
+        }
+        function hideEditForm(index) {
+            document.getElementById('contact-view-' + index).style.display = 'block';
+            document.getElementById('contact-edit-' + index).style.display = 'none';
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            var today = new Date().toISOString().split('T')[0];
+            document.querySelectorAll('input[name="vaccine_date"], input[name="task_date"]').forEach(function(input) {
+                if (!input.value) input.value = today;
+            });
+            // Scroll to hash anchor after page load
+            if (window.location.hash) {
+                var el = document.querySelector(window.location.hash);
+                if (el) setTimeout(function() { el.scrollIntoView({ behavior: 'auto' }); }, 100);
+            }
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+    <nav class="nav-pane">
+        <h2>🫁 Puff & Glow</h2>
+        <div class="nav-item" onclick="scrollToSection('about')">📖 About Your Journey</div>
+        <div class="nav-item" onclick="scrollToSection('treatment')">💚 Treatment Benefits</div>
+        <div class="nav-item" onclick="scrollToSection('pregnancy-week')">📅 Pregnancy Week</div>
+        <div class="nav-item" onclick="scrollToSection('appointments')">📅 Appointments</div>
+        <div class="nav-item" onclick="scrollToSection('hospital-portal')">🏥 Hospital Portal</div>
+        <div class="nav-item" onclick="scrollToSection('emergency-contacts')">🆘 Emergency Contacts</div>
+        <div class="nav-item" onclick="scrollToSection('daily-log')">📊 Daily Health Log</div>
+        <div class="nav-item" onclick="scrollToSection('telehealth')">📞 Telehealth</div>
+        <div class="nav-item" onclick="scrollToSection('exercise-programs')">🏃‍♀️ Exercise Programs</div>
+        <div class="nav-item" onclick="scrollToSection('pharmacy-locations')">💊 Pharmacy Locations</div>
+        <div class="nav-item" onclick="scrollToSection('checklist')">✅ Care Checklist</div>
+        <div class="nav-item" onclick="scrollToSection('symptoms')">🩺 Symptom Management</div>
+        <div class="nav-item" onclick="scrollToSection('medications')">💊 Medications</div>
+        <div class="nav-item" onclick="scrollToSection('weight')">⚖️ Weight Tracker</div>
+        <div class="nav-item" onclick="scrollToSection('kicks')">👶 Kick Counter</div>
+        <div class="nav-item" onclick="scrollToSection('contractions')">⏱️ Contraction Timer</div>
+        <div class="nav-item" onclick="scrollToSection('hospital-bag')">🎒 Hospital Bag</div>
+        <div class="nav-item" onclick="scrollToSection('birth-plan')">📋 Birth Plan</div>
+        <div class="nav-item" onclick="scrollToSection('faq')">❓ FAQ</div>
+        <div class="nav-item" onclick="scrollToSection('videos')">📺 Educational Videos</div>
+        <div class="nav-item" onclick="scrollToSection('chat')">💬 Community Chat</div>
+    </nav>
+    <div class="main-content">
+    <div class="header">
+        <div>
+            <h1>🫁✨ Puff & Glow</h1>
+            <p style="margin: 5px 0 0 0; opacity: 0.9;">Pregnancy Care for Pulmonary Hypertension</p>
+        </div>
+        <div>
+            <form method="POST" action="/reset_data" style="display: inline; margin-right: 10px;" onsubmit="return confirm('Are you sure you want to reset all your data? This cannot be undone.');">
+                <button type="submit" style="background: #ff9800;">Reset Data</button>
+            </form>
+            <a href="/logout"><button class="logout">Logout</button></a>
+        </div>
+    </div>
+
+    <div class="section" id="about">
+        <h2>About Your Journey</h2>
+        <p><strong>Pulmonary hypertension</strong> means the blood vessels in your lungs are a little tighter than usual, so your heart has to work harder to move blood through them. During pregnancy, your body naturally works extra hard, and this condition can make those changes feel more noticeable.</p>
+        <p>This app gently guides you through understanding your condition, tracking how you feel, and staying connected with your care team. It's here to help you breathe easier, feel supported, and move through pregnancy with confidence and calm.</p>
+    </div>
+
+    {% if daily_quote.type == 'joke' %}
+    <div class="quote-banner quote-joke">😄 {{ daily_quote.text }}</div>
+    {% else %}
+    <div class="quote-banner quote-inspire">{{ daily_quote.text }}</div>
+    {% endif %}
+
+    <div class="section" id="treatment">
+        <h3>💚 Benefits of Your Treatment Plan</h3>
+        <ul>
+            {% for benefit in treatment_benefits %}
+            <li><strong>{{ benefit }}</strong></li>
+            {% endfor %}
+        </ul>
+    </div>
+    
+    <div class="section" id="pregnancy-week">
+        <h3>Update Your Pregnancy Week</h3>
+        <form method="POST" action="/update_week">
+            <div style="margin-bottom: 15px;">
+                <label><strong>Enter Week:</strong></label><br>
+                <input type="number" name="week" min="1" max="42" 
+                       value="{{ patient.pregnancy_week or '' }}" 
+                       placeholder="Week #">
+                <button type="submit">Update</button>
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label><strong>Or Select Trimester:</strong></label><br>
+                <select name="trimester">
+                    <option value="">Choose...</option>
+                    <option value="1">1st Trimester (Week 8)</option>
+                    <option value="2">2nd Trimester (Week 20)</option>
+                    <option value="3">3rd Trimester (Week 32)</option>
+                </select>
+                <button type="submit">Update</button>
+            </div>
+            <div>
+                <label><strong>Or Select Month:</strong></label><br>
+                <select name="month">
+                    <option value="">Choose...</option>
+                    <option value="1">Month 1 (Week 4)</option>
+                    <option value="2">Month 2 (Week 8)</option>
+                    <option value="3">Month 3 (Week 13)</option>
+                    <option value="4">Month 4 (Week 17)</option>
+                    <option value="5">Month 5 (Week 21)</option>
+                    <option value="6">Month 6 (Week 26)</option>
+                    <option value="7">Month 7 (Week 30)</option>
+                    <option value="8">Month 8 (Week 35)</option>
+                    <option value="9">Month 9 (Week 39)</option>
+                </select>
+                <button type="submit">Update</button>
+            </div>
+        </form>
+        {% if patient.pregnancy_week %}
+        <p style="margin-top: 15px;"><strong>Current Week: {{ patient.pregnancy_week }}</strong></p>
+        {% endif %}
+    </div>
+
+    <div class="section" id="appointments">
+        <h3>📅 Prenatal Appointment Schedule</h3>
+        {% if appointment_frequency %}
+        <p><strong>{{ appointment_frequency }}</strong> - You should see your healthcare provider {{ appointment_frequency|lower }}.</p>
+        {% endif %}
+        
+        <form method="POST" action="/set_appointment" style="margin-top: 15px;">
+            <label><strong>Set Your Next Appointment:</strong></label><br>
+            <input type="date" name="appointment_date" value="{{ patient.get('next_appointment', '') }}" required>
+            <input type="time" name="appointment_time" value="{{ patient.get('appointment_time', '') }}">
+            <button type="submit">Save Appointment</button>
+        </form>
+        
+        {% if patient.get('next_appointment') %}
+            {% if appointment_status == 'today' %}
+            <p style="margin-top: 15px;"><strong>Next Appointment:</strong> {{ patient.next_appointment }}{% if patient.get('appointment_time') %} at {{ patient.appointment_time }}{% endif %}</p>
+            <div class="countdown-box" style="background: #e8f5e9; border-color: #a5d6a7;">
+                <p class="countdown" style="color: #2e7d32;">🎉 Your appointment is TODAY!{% if patient.get('appointment_time') %} at {{ patient.appointment_time }}{% endif %}</p>
+            </div>
+            {% elif appointment_status == 'upcoming' %}
+            <p style="margin-top: 15px;"><strong>Next Appointment:</strong> {{ patient.next_appointment }}{% if patient.get('appointment_time') %} at {{ patient.appointment_time }}{% endif %}</p>
+            {% if appointment_countdown is not none %}
+            <div class="countdown-box">
+                <p class="countdown">⏰ {{ appointment_countdown }} day{% if appointment_countdown != 1 %}s{% endif %} until your appointment!</p>
+            </div>
+            {% endif %}
+            {% elif appointment_status == 'past' %}
+            <p style="margin-top: 15px; color: #999;"><strong>Past Appointment:</strong> {{ patient.next_appointment }}</p>
+            <p style="color: #f44336; font-weight: bold;">⚠️ This appointment was {{ appointment_countdown }} day{% if appointment_countdown != 1 %}s{% endif %} ago. Please schedule your next appointment.</p>
+            {% endif %}
+        {% else %}
+        <p style="margin-top: 15px; color: #ff9800; font-weight: bold;">📅 No upcoming appointments scheduled.</p>
+        {% endif %}
+    </div>
+
+    <div class="section" id="hospital-portal">
+        <h3>🏥 Hospital Portal Integration</h3>
+        <p>Connect with your hospital's patient portal to sync medical records, lab results, and appointments.</p>
+        
+        <h4>Select Your Hospital System:</h4>
+        {% for portal in hospital_portals %}
+        <div style="background: #e3f2fd; padding: 15px; margin: 10px 0; border-radius: 5px;">
+            <strong>{{ portal.name }}</strong><br>
+            <a href="{{ portal.url }}" target="_blank">
+                <button type="button" style="background: #2196F3; margin-top: 10px;">Connect to {{ portal.name }}</button>
+            </a>
+        </div>
+        {% endfor %}
+        
+        {% if patient.get('hospital_portal_synced') %}
+        <p style="color: #4caf50; font-weight: bold; margin-top: 15px;">✓ Connected to hospital portal</p>
+        {% endif %}
+        <p style="font-size: 0.9em; color: #666; margin-top: 10px;"><em>Note: You'll be redirected to your hospital's secure login page.</em></p>
+    </div>
+
+    <div class="section" id="emergency-contacts">
+        <h3>🆘 Emergency Contacts</h3>
+        <p>Add up to 2 trusted contacts who can be notified if you need support. You'll choose whether to notify them when sending a message.</p>
+        
+        {% if patient.get('emergency_contacts') and patient.emergency_contacts|length < 2 %}
+        <form method="POST" action="/add_emergency_contact">
+            <input type="text" name="contact_name" placeholder="Contact Name" required pattern="[A-Za-z\s]+" title="Letters only">
+            <input type="tel" name="contact_phone" placeholder="10-11 digit number" required pattern="[0-9]{10,11}" minlength="10" maxlength="11" title="Enter 10 or 11 digits">
+            <input type="text" name="relationship" placeholder="Relationship (e.g., Partner, Mom)" required pattern="[A-Za-z\s,]+" title="Letters only">
+            <label style="display: flex; align-items: center; gap: 8px; margin: 10px 0;">
+                <input type="checkbox" name="auto_notify" style="width: auto;">
+                <span>Auto-notify in case of emergency</span>
+            </label>
+            <button type="submit">Add Emergency Contact</button>
+        </form>
+        {% elif not patient.get('emergency_contacts') %}
+        <form method="POST" action="/add_emergency_contact">
+            <input type="text" name="contact_name" placeholder="Contact Name" required pattern="[A-Za-z\s]+" title="Letters only">
+            <input type="tel" name="contact_phone" placeholder="10-11 digit number" required pattern="[0-9]{10,11}" minlength="10" maxlength="11" title="Enter 10 or 11 digits">
+            <input type="text" name="relationship" placeholder="Relationship (e.g., Partner, Mom)" required pattern="[A-Za-z\s,]+" title="Letters only">
+            <label style="display: flex; align-items: center; gap: 8px; margin: 10px 0;">
+                <input type="checkbox" name="auto_notify" style="width: auto;">
+                <span>Auto-notify in case of emergency</span>
+            </label>
+            <button type="submit">Add Emergency Contact</button>
+        </form>
+        {% else %}
+        <p style="color: #ff9800; font-weight: bold;">Maximum 2 emergency contacts reached.</p>
+        {% endif %}
+        
+        {% if patient.get('emergency_contacts') %}
+        <h4 style="margin-top: 20px;">Your Emergency Contacts ({{ patient.emergency_contacts|length }}/2):</h4>
+            {% for contact in patient.emergency_contacts %}
+            <div class="clinician-card">
+                <div id="contact-view-{{ loop.index0 }}">
+                    <strong>{{ contact.name }}</strong> - {{ contact.relationship }}<br>
+                    📞 {{ contact.phone }}<br>
+                    {% if contact.get('auto_notify') %}
+                    <span style="color: #4caf50;">✓ Auto-notify enabled</span><br>
+                    {% else %}
+                    <span style="color: #999;">Auto-notify disabled</span><br>
+                    {% endif %}
+                    <button type="button" onclick="showEditForm({{ loop.index0 }})" style="background: #2196F3; padding: 5px 10px; font-size: 0.9em; margin-top: 10px;">Edit</button>
+                    <form method="POST" action="/delete_emergency_contact" style="display: inline; margin-left: 10px;">
+                        <input type="hidden" name="contact_index" value="{{ loop.index0 }}">
+                        <button type="submit" style="background: #f44336; padding: 5px 10px; font-size: 0.9em;">Remove</button>
+                    </form>
+                </div>
+                <div id="contact-edit-{{ loop.index0 }}" style="display: none;">
+                    <form method="POST" action="/update_emergency_contact">
+                        <input type="hidden" name="contact_index" value="{{ loop.index0 }}">
+                        <input type="text" name="contact_name" value="{{ contact.name }}" required pattern="[A-Za-z\s]+" title="Letters only">
+                        <input type="tel" name="contact_phone" value="{{ contact.phone }}" required pattern="[0-9]{10,11}" minlength="10" maxlength="11" title="Enter 10 or 11 digits">
+                        <input type="text" name="relationship" value="{{ contact.relationship }}" required pattern="[A-Za-z\s,]+" title="Letters only">
+                        <label style="display: flex; align-items: center; gap: 8px; margin: 10px 0;">
+                            <input type="checkbox" name="auto_notify" style="width: auto;" {% if contact.get('auto_notify') %}checked{% endif %}>
+                            <span>Auto-notify in case of emergency</span>
+                        </label>
+                        <button type="submit" style="background: #4caf50; padding: 5px 10px; font-size: 0.9em;">Save</button>
+                        <button type="button" onclick="hideEditForm({{ loop.index0 }})" style="background: #999; padding: 5px 10px; font-size: 0.9em;">Cancel</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p><em>No emergency contacts added yet.</em></p>
+        {% endif %}
+    </div>
+
+    <div class="section" id="daily-log">
+        <h3>📊 Daily Health Log</h3>
+        <p style="background: #e3f2fd; padding: 15px; border-radius: 5px; margin-bottom: 15px;">
+            <strong>Why Track These Numbers?</strong><br>
+            Because your heart and lungs work a little harder during pregnancy, keeping an eye on a few simple numbers can help your care team support you and your baby. Many women with pulmonary hypertension are asked to check things like:<br><br>
+            <strong>Blood pressure</strong> — often checked regularly at home so your team can spot changes early.<br>
+            <strong>Blood sugar (glucose)</strong> — checked as recommended, especially if there are concerns about gestational diabetes.<br>
+            <strong>Weight</strong> — checked often to watch for fluid changes, which can be important in pulmonary hypertension.<br><br>
+            Your care team will tell you exactly how often to check each one, and this app helps you track everything in one calm, easy place. Think of it as a gentle way to stay connected to your health between appointments.
+        </p>
+        
+        <form method="POST" action="/add_daily_log">
+            <label><strong>Date:</strong></label>
+            <input type="date" name="date" required>
+            <label><strong>Blood Pressure:</strong></label>
+            <input type="text" name="blood_pressure" placeholder="120/80" required pattern="[0-9]+/[0-9]+" title="Enter as numbers: e.g. 120/80">
+            <label><strong>Glucose:</strong></label>
+            <input type="number" name="glucose" placeholder="95" required min="0" step="1">
+            <label><strong>Weight (weekly):</strong></label>
+            <input type="number" name="weight" placeholder="150" step="0.1" min="0">
+            <button type="submit">Add Log Entry</button>
+        </form>
+        
+        <h4 style="margin-top: 20px;">Recent Logs:</h4>
+        {% if patient.get('daily_logs') %}
+            {% for log in patient.daily_logs[-5:] %}
+            <div class="log-entry" style="{% if log.get('warnings') %}border-left: 4px solid #ff9800;{% endif %}">
+                <strong>{{ log.date }}</strong> 
+                <span style="float: right; padding: 3px 10px; border-radius: 3px; font-size: 0.9em; {% if log.get('classification') == 'Normal' %}background: #e8f5e9; color: #2e7d32;{% else %}background: #ffebee; color: #c62828;{% endif %}">
+                    {{ log.get('classification', 'Normal') }}
+                </span>
+                <br>
+                BP: {{ log.blood_pressure }}, Glucose: {{ log.glucose }}
+                {% if log.weight %}, Weight: {{ log.weight }}{% endif %}
+                {% if log.get('warnings') %}
+                <div style="background: #fff3e0; padding: 10px; margin-top: 10px; border-radius: 5px;">
+                    <strong style="color: #ff9800;">⚠️ Note:</strong> Some values appear outside normal range. 
+                    <strong>Please don't panic</strong> - this is just a reminder to discuss these numbers with your care team at your next appointment or call them if you have concerns.
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        {% else %}
+            <p><em>No logs yet. Start tracking your health!</em></p>
+        {% endif %}
+        
+        <h4 style="margin-top: 20px;">⏰ Set Daily Email Reminder</h4>
+        <form method="POST" action="/update_email_settings">
+            <label><strong>Email Address:</strong></label>
+            <input type="email" name="email" value="{{ patient.get('email', '') }}" placeholder="your-email@example.com" required>
+            <label><strong>Reminder Time:</strong></label>
+            <input type="time" name="reminder_time" value="{{ patient.get('reminder_time', '') }}" required>
+            <button type="submit">Save Email Settings</button>
+        </form>
+        {% if patient.get('email') and patient.get('reminder_time') %}
+        <p style="margin-top: 10px; color: #4caf50;">
+            ✓ Daily reminders will be sent to <strong>{{ patient.email }}</strong> at <strong>{{ patient.reminder_time }}</strong>
+        </p>
+        {% endif %}
+    </div>
+
+        {% for supplement, benefit in supplement_info.items() %}
+        <div class="supplement-info">
+            <strong>{{ supplement }}:</strong> {{ benefit }}
+        </div>
+        {% endfor %}
+
+    <div class="section" id="telehealth">
+        <h3>📞 Book Telehealth Appointment</h3>
+        <p>Schedule a virtual visit with your healthcare provider:</p>
+        <a href="https://www.zocdoc.com/search/?dr_specialty=122&insurance_carrier=-1&reason_visit=75" target="_blank">
+            <button style="background: white; color: #2196F3;">Find Provider & Book Appointment</button>
+        </a>
+    </div>
+
+    <div class="section" id="exercise-programs">
+        <h3>🏃‍♀️ Find Gentle Exercise Programs Near You</h3>
+        <form method="POST" action="/update_zipcode">
+            <input type="text" name="zipcode" pattern="[0-9]{5}" 
+                   value="{{ patient.get('zipcode', '') }}" 
+                   placeholder="Enter ZIP" maxlength="5" required>
+            <button type="submit">Save ZIP Code</button>
+        </form>
+        {% if patient.get('zipcode') %}
+        <p style="margin-top: 15px;"><strong>Your ZIP: {{ patient.zipcode }}</strong></p>
+        <p>Search for gentle, low-impact programs near you:</p>
+        <ul>
+            <li><a href="https://www.google.com/maps/search/prenatal+yoga+classes+near+{{ patient.zipcode }}" target="_blank">Gentle Prenatal Yoga</a></li>
+            <li><a href="https://www.google.com/maps/search/breathing+exercises+classes+near+{{ patient.zipcode }}" target="_blank">Breathing Exercise Classes</a></li>
+            <li><a href="https://www.google.com/maps/search/walking+groups+near+{{ patient.zipcode }}" target="_blank">Walking Groups</a></li>
+            <li><a href="https://www.ymca.org/find-your-y" target="_blank">YMCA Programs (often free/low-cost)</a></li>
+        </ul>
+        {% endif %}
+    </div>
+
+    <div class="section" id="pharmacy-locations">
+        <h3>💊 Find Pharmacies Near You</h3>
+        <form method="POST" action="/update_zipcode">
+            <input type="text" name="zipcode" pattern="[0-9]{5}" 
+                   value="{{ patient.get('zipcode', '') }}" 
+                   placeholder="Enter ZIP" maxlength="5" required>
+            <button type="submit">Save ZIP Code</button>
+        </form>
+        {% if patient.get('zipcode') %}
+        <p style="margin-top: 15px;"><strong>Your ZIP: {{ patient.zipcode }}</strong></p>
+        <p>Find pharmacies near you:</p>
+        <ul>
+            <li><a href="https://www.google.com/maps/search/pharmacy+near+{{ patient.zipcode }}" target="_blank">All Pharmacies Nearby</a></li>
+            <li><a href="https://www.google.com/maps/search/CVS+pharmacy+near+{{ patient.zipcode }}" target="_blank">CVS Pharmacy</a></li>
+            <li><a href="https://www.google.com/maps/search/Walgreens+pharmacy+near+{{ patient.zipcode }}" target="_blank">Walgreens</a></li>
+            <li><a href="https://www.google.com/maps/search/Rite+Aid+pharmacy+near+{{ patient.zipcode }}" target="_blank">Rite Aid</a></li>
+            <li><a href="https://www.google.com/maps/search/Walmart+pharmacy+near+{{ patient.zipcode }}" target="_blank">Walmart Pharmacy</a></li>
+            <li><a href="https://www.google.com/maps/search/24+hour+pharmacy+near+{{ patient.zipcode }}" target="_blank">24-Hour Pharmacies</a></li>
+        </ul>
+        {% endif %}
+    </div>
+
+    <div class="section" id="checklist">
+        <h2>Your Pregnancy Care Checklist</h2>
+        {% if reminders %}
+        
+        {% if reminders.vaccines %}
+        <div class="subsection">
+            <h3>💉 Vaccines - Protecting You & Baby</h3>
+            {% if all_vaccines_caught_up and not reminders.vaccines %}
+            <div style="background: #e8f5e9; padding: 20px; border-radius: 10px; text-align: center;">
+                <h2 style="color: #4caf50; margin: 0;">✓ You're All Caught Up!</h2>
+                <p style="margin: 10px 0 0 0;">No upcoming vaccines at this time. Great job staying on track!</p>
+            </div>
+            {% else %}
+            <form method="POST" action="/update_vaccines">
+                <div style="margin-bottom: 15px;">
+                    <label><strong>Date Received:</strong></label>
+                    <input type="date" name="vaccine_date" value="{{ today }}" style="margin-left: 10px;">
+                </div>
+                {% for item in reminders.vaccines %}
+                    {% if item in vaccine_info %}
+                    {% set is_current = false %}
+                    {% if 'Tdap' in item and patient.pregnancy_week >= 27 and patient.pregnancy_week <= 36 %}
+                        {% set is_current = true %}
+                    {% elif 'RSV' in item and patient.pregnancy_week >= 32 and patient.pregnancy_week <= 36 %}
+                        {% set is_current = true %}
+                    {% elif 'Pneumococcal' in item %}
+                        {% set is_current = true %}
+                    {% elif 'COVID-19' in item or 'Flu' in item or 'Hepatitis' in item %}
+                        {% set is_current = true %}
+                    {% endif %}
+                    
+                    <div class="vaccine-detail {% if is_current %}highlight{% endif %}">
+                        {% if item in patient.get('vaccines_received', []) %}
+                        <div style="text-decoration: line-through; opacity: 0.7;">
+                            <strong>✓ {{ item }}</strong>
+                            {% if item in patient.get('vaccines_tracking', {}) %}
+                            <span style="color: #666; font-size: 0.9em;"> - Received: {{ patient.vaccines_tracking[item] }}</span>
+                            {% endif %}
+                        </div>
+                        <form method="POST" action="/uncheck_vaccine" style="display: inline;">
+                            <input type="hidden" name="vaccine" value="{{ item }}">
+                            <button type="submit" style="background: #ff9800; padding: 5px 10px; font-size: 0.9em; margin-top: 5px;">Undo</button>
+                        </form>
+                        {% else %}
+                        <label>
+                            <input type="checkbox" name="vaccines" value="{{ item }}">
+                            <strong>{{ item }}</strong>
+                            {% if is_current %}<span style="color: #f57c00; font-weight: bold;"> ⚠️ DUE NOW</span>{% endif %}
+                        </label>
+                        <p style="margin: 5px 0 0 25px;">✓ {{ vaccine_info[item].benefit }}</p>
+                        <p class="vaccine-reminder" style="margin: 5px 0 0 25px;">📅 {{ vaccine_info[item].reminder }}</p>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                {% endfor %}
+                <button type="submit" style="margin-top: 15px;">Save Vaccine Status</button>
+            </form>
+            {% endif %}
+        </div>
+        {% elif patient.pregnancy_week %}
+        <div class="subsection">
+            <h3>💉 Vaccines - Protecting You & Baby</h3>
+            <div style="background: #e8f5e9; padding: 20px; border-radius: 10px; text-align: center;">
+                <h2 style="color: #4caf50; margin: 0;">✓ You're All Caught Up!</h2>
+                <p style="margin: 10px 0 0 0;">No upcoming vaccines at this time. Great job staying on track!</p>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if reminders.labwork %}
+        <div class="subsection">
+            <h3>🔬 Lab Work & Tests</h3>
+            <p style="background: #e3f2fd; padding: 15px; border-radius: 5px; margin-bottom: 15px;">
+                <strong>Why These Tests Matter:</strong> Each test helps ensure your baby gets everything needed for healthy development.
+            </p>
+            <form method="POST" action="/update_tasks">
+                <div style="margin-bottom: 15px;">
+                    <label><strong>Date Completed:</strong></label>
+                    <input type="date" name="task_date" value="{{ today }}" style="margin-left: 10px;">
+                </div>
+                <ul style="list-style: none; padding-left: 0;">
+                    {% for item in reminders.labwork %}
+                    <li style="margin-bottom: 15px;">
+                        {% set task_key = 'lab:' + item %}
+                        {% if task_key in patient.get('completed_tasks', []) %}
+                        <div style="text-decoration: line-through; opacity: 0.7;">
+                            <strong>✓ {{ item }}</strong>
+                            {% if task_key in patient.get('tasks_tracking', {}) %}
+                            <span style="color: #666; font-size: 0.9em;"> - Completed: {{ patient.tasks_tracking[task_key] }}</span>
+                            {% endif %}
+                        </div>
+                        <form method="POST" action="/uncheck_task" style="display: inline;">
+                            <input type="hidden" name="task" value="{{ task_key }}">
+                            <button type="submit" style="background: #ff9800; padding: 5px 10px; font-size: 0.9em; margin-top: 5px;">Undo</button>
+                        </form>
+                        {% else %}
+                        <label>
+                            <input type="checkbox" name="tasks" value="{{ task_key }}">
+                            <strong>{{ item }}</strong>
+                        </label>
+                        {% if item in labwork_explanations %}
+                        <p style="margin: 5px 0 0 25px; color: #666; font-size: 0.95em;">
+                            💡 {{ labwork_explanations[item] }}
+                        </p>
+                        {% endif %}
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+                <button type="submit">Save Progress</button>
+            </form>
+        </div>
+        {% endif %}
+
+        {% if reminders.management %}
+        <div class="subsection">
+            <h3>📋 Management & Care</h3>
+            
+            <div style="background: #e8f5e9; padding: 20px; margin-bottom: 20px; border-radius: 10px;">
+                <h4 style="margin-top: 0;">Special Management Techniques:</h4>
+                {% for technique, info in management_visuals.items() %}
+                <div style="background: white; padding: 15px; margin: 15px 0; border-radius: 5px; border-left: 4px solid #4caf50;">
+                    <div style="font-size: 3em; text-align: center;">{{ info.icon }}</div>
+                    <h4 style="color: #2e7d32;">{{ technique }}</h4>
+                    <p>{{ info.description }}</p>
+                    <a href="{{ info.image_search }}" target="_blank">
+                        <button type="button" style="background: #4caf50;">View Visual Guide</button>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <form method="POST" action="/update_tasks">
+                <ul style="list-style: none; padding-left: 0;">
+                    {% for item in reminders.management %}
+                    <li>
+                        <label>
+                            <input type="checkbox" name="tasks" value="mgmt:{{ item }}" 
+                                   {% if 'mgmt:' + item in patient.get('completed_tasks', []) %}checked{% endif %}>
+                            {{ item }}
+                        </label>
+                    </li>
+                    {% endfor %}
+                </ul>
+                <button type="submit">Save Progress</button>
+            </form>
+        </div>
+        {% endif %}
+
+        {% if reminders.exercise %}
+        <div class="subsection">
+            <h3>🏃‍♀️ Gentle Movement Recommendations</h3>
+            <p style="background: #fff3e0; padding: 15px; border-radius: 5px; margin-bottom: 15px;">
+                <strong>Why Exercise Matters:</strong> {{ exercise_importance }}
+            </p>
+            
+            <h4>Additional Recommended Exercises:</h4>
+            {% for exercise, info in additional_exercises.items() %}
+            <div class="exercise-card">
+                <div style="font-size: 3em; text-align: center;">{{ info.image }}</div>
+                <h4 style="color: #ff5722; margin: 10px 0;">{{ exercise }}</h4>
+                <p><strong>Benefits:</strong> {{ info.benefit }}</p>
+                <a href="{{ info.video }}" target="_blank">
+                    <button type="button" style="background: #ff5722;">Watch Video Tutorial</button>
+                </a>
+                <a href="https://www.google.com/search?q={{ exercise }}+pregnancy&tbm=isch" target="_blank">
+                    <button type="button" style="background: #9c27b0; margin-left: 10px;">View Images</button>
+                </a>
+            </div>
+            {% endfor %}
+            
+            <h4 style="margin-top: 30px;">Your Weekly Exercise Checklist:</h4>
+            <form method="POST" action="/update_tasks">
+                <ul style="list-style: none; padding-left: 0;">
+                    {% for item in reminders.exercise %}
+                    <li>
+                        <label>
+                            <input type="checkbox" name="tasks" value="exercise:{{ item }}" 
+                                   {% if 'exercise:' + item in patient.get('completed_tasks', []) %}checked{% endif %}>
+                            {{ item }}
+                        </label>
+                        {% if item in exercise_videos %}
+                        <div class="exercise-video">
+                            <div class="exercise-icon">{{ exercise_videos[item].image }}</div>
+                            <a href="{{ exercise_videos[item].video }}" target="_blank" style="display: block; margin-top: 5px;">
+                                <button type="button" style="background: #ff5722;">Watch Video Guide</button>
+                            </a>
+                        </div>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+                <button type="submit">Save Progress</button>
+            </form>
+        </div>
+        {% endif %}
+    {% else %}
+        <p><em>Set your pregnancy week above to see your care checklist.</em></p>
+    {% endif %}
+    </div>
+
+    <div class="section" id="symptoms">
+        <h2>🩺 Self-Management for Common Symptoms</h2>
+        <p><em>Try these tips at home. Contact your provider immediately if symptoms worsen or you feel concerned.</em></p>
+        {% for symptom, tips in symptoms.items() %}
+        <div class="symptom-item">
+            <h4>{{ symptom }}</h4>
+            <ul>
+                {% for tip in tips %}
+                <li>{{ tip }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endfor %}
+    </div>
+
+<!-- NEW FEATURES SECTION -->
+
+<!-- Weekly Tip -->
+{% if weekly_tip %}
+<div style="background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); padding: 22px 24px; border-radius: 14px; margin: 20px 0; border: 1px solid #93c5fd;">
+    <h3 style="margin: 0 0 8px 0; color: #1e40af;">💡 This Week's Tip</h3>
+    <p style="margin: 0; font-size: 1.05em; color: #1e3a5f;">{{ weekly_tip }}</p>
+</div>
+{% endif %}
+
+<!-- Medication Tracker -->
+<div class="section" id="medications">
+    <h3>💊 Medication Tracker</h3>
+    <form method="POST" action="/add_medication" style="background: #f5f5f5; padding: 15px; border-radius: 5px; margin: 10px 0;">
+        <input type="text" name="med_name" placeholder="Medication Name" required style="margin: 5px;">
+        <input type="number" name="dosage" placeholder="Dosage (mg)" required style="margin: 5px; width: 120px;" min="0" step="any">
+        <input type="number" name="frequency" placeholder="Times per day" required style="margin: 5px; width: 150px;" min="1" step="1">
+        <input type="time" name="med_time" placeholder="Time" style="margin: 5px; width: 100px;">
+        <button type="submit" style="margin: 5px;">Add Medication</button>
+    </form>
+    
+    {% if patient.get('medications') %}
+    <div style="margin-top: 15px;">
+        {% for med in patient.medications %}
+        <div style="background: #e8f5e9; padding: 10px; margin: 5px 0; border-radius: 5px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <strong>{{ med.name }}</strong> - {{ med.dosage }}<br>
+                <small>{{ med.frequency }}{% if med.time %} at {{ med.time }}{% endif %}</small>
+            </div>
+            <form method="POST" action="/delete_medication" style="display: inline;">
+                <input type="hidden" name="med_index" value="{{ loop.index0 }}">
+                <button type="submit" style="background: #f44336; padding: 5px 10px; font-size: 0.9em;">Remove</button>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+<!-- Weight Tracker -->
+<div class="section" id="weight">
+    <h3>⚖️ Weight Tracker</h3>
+    <form method="POST" action="/log_weight" style="display: flex; gap: 10px; align-items: center;">
+        <input type="number" name="weight" placeholder="Weight (lbs)" required step="0.1" style="width: 120px;">
+        <input type="date" name="weight_date" value="{{ today}}" style="width: 150px;">
+        <button type="submit">Log Weight</button>
+    </form>
+    
+    {% if patient.get('weight_logs') %}
+    <div style="margin-top: 15px;">
+        <strong>Recent Weights:</strong>
+        {% for log in patient.weight_logs[-5:] %}
+        <div style="padding: 5px; border-bottom: 1px solid #eee;">
+            {{ log.weight }} lbs - {{ log.date }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+<!-- Kick Counter -->
+<div class="section" id="kicks">
+    <h3>👶 Kick Counter</h3>
+    {% if patient.pregnancy_week and patient.pregnancy_week >= 20 %}
+    <p><em>Track baby movements. Aim for 10 kicks in 2 hours.</em></p>
+    <form method="POST" action="/log_kicks" style="display: flex; gap: 10px; align-items: center;">
+        <input type="number" name="kick_count" placeholder="Number of kicks" required min="1" style="width: 150px;">
+        <input type="number" name="duration" placeholder="Minutes" required min="1" style="width: 100px;">
+        <button type="submit">Log Kicks</button>
+    </form>
+    
+    {% if patient.get('kick_counts') %}
+    <div style="margin-top: 15px;">
+        <strong>Recent Kick Counts:</strong>
+        {% for log in patient.kick_counts[-3:] %}
+        <div style="padding: 5px; border-bottom: 1px solid #eee;">
+            {{ log.count }} kicks in {{ log.duration }} minutes - {{ log.timestamp }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% else %}
+    <p><em>Available from week 20. {% if patient.pregnancy_week %}You're currently at week {{ patient.pregnancy_week }}.{% else %}Set your pregnancy week to get started.{% endif %}</em></p>
+    {% endif %}
+</div>
+
+<!-- Contraction Timer -->
+<div class="section" id="contractions">
+    <h3>⏱️ Contraction Timer</h3>
+    {% if patient.pregnancy_week and patient.pregnancy_week >= 36 %}
+    <p><em>Track contractions. Call your doctor if they're 5 minutes apart for 1 hour.</em></p>
+    <form method="POST" action="/log_contraction" style="display: flex; gap: 10px; align-items: center;">
+        <input type="number" name="contraction_duration" placeholder="Duration (seconds)" required min="1" style="width: 150px;">
+        <select name="intensity" required style="width: 120px;">
+            <option value="">Intensity</option>
+            <option value="Mild">Mild</option>
+            <option value="Moderate">Moderate</option>
+            <option value="Strong">Strong</option>
+        </select>
+        <button type="submit">Log Contraction</button>
+    </form>
+    
+    {% if patient.get('contractions') %}
+    <div style="margin-top: 15px;">
+        <strong>Recent Contractions:</strong>
+        {% for log in patient.contractions[-5:] %}
+        <div style="padding: 5px; border-bottom: 1px solid #eee;">
+            {{ log.duration }}s - {{ log.intensity }} - {{ log.timestamp }}
+        </div>
+        {% endfor %}
+        {% if patient.contractions|length >= 3 %}
+        <p style="color: #f57c00; margin-top: 10px;"><strong>⚠️ Tracking {{ patient.contractions|length }} contractions. Monitor frequency!</strong></p>
+        {% endif %}
+    </div>
+    {% endif %}
+    {% else %}
+    <p><em>Available from week 36. {% if patient.pregnancy_week %}You're currently at week {{ patient.pregnancy_week }}.{% else %}Set your pregnancy week to get started.{% endif %}</em></p>
+    {% endif %}
+</div>
+
+<!-- Hospital Bag Checklist -->
+<div class="section" id="hospital-bag">
+    <h3>🎒 Hospital Bag Checklist</h3>
+    {% for category, items in hospital_bag_checklist.items() %}
+    <div style="margin: 15px 0;">
+        <h4 style="color: #667eea; margin: 10px 0;">{{ category }}</h4>
+        {% for item in items %}
+        <form method="POST" action="/toggle_hospital_bag" style="display: inline;">
+            <input type="hidden" name="item" value="{{ item }}">
+            <label style="display: block; padding: 5px; cursor: pointer;">
+                <input type="checkbox" onchange="this.form.submit()" {% if item in patient.get('hospital_bag', []) %}checked{% endif %}>
+                <span {% if item in patient.get('hospital_bag', []) %}style="text-decoration: line-through; opacity: 0.6;"{% endif %}>{{ item }}</span>
+            </label>
+        </form>
+        {% endfor %}
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Birth Plan Builder -->
+<div class="section" id="birth-plan">
+    <h3>📋 Birth Plan</h3>
+    <form method="POST" action="/save_birth_plan">
+        <label><strong>Delivery Preference:</strong></label>
+        <select name="delivery_preference" style="width: 100%; padding: 10px; margin: 5px 0;">
+            <option value="">Select...</option>
+            <option value="Vaginal" {% if patient.get('birth_plan', {}).get('delivery_preference') == 'Vaginal' %}selected{% endif %}>Vaginal Delivery</option>
+            <option value="C-Section" {% if patient.get('birth_plan', {}).get('delivery_preference') == 'C-Section' %}selected{% endif %}>Planned C-Section</option>
+            <option value="Doctor's Recommendation" {% if patient.get('birth_plan', {}).get('delivery_preference') == "Doctor's Recommendation" %}selected{% endif %}>Follow Doctor's Recommendation</option>
+        </select>
+        
+        <label><strong>Pain Management:</strong></label>
+        <select name="pain_management" style="width: 100%; padding: 10px; margin: 5px 0;">
+            <option value="">Select...</option>
+            <option value="Epidural" {% if patient.get('birth_plan', {}).get('pain_management') == 'Epidural' %}selected{% endif %}>Epidural</option>
+            <option value="Natural" {% if patient.get('birth_plan', {}).get('pain_management') == 'Natural' %}selected{% endif %}>Natural/Unmedicated</option>
+            <option value="Flexible" {% if patient.get('birth_plan', {}).get('pain_management') == 'Flexible' %}selected{% endif %}>Flexible/Decide in Moment</option>
+        </select>
+        
+        <label><strong>Support Person:</strong></label>
+        <input type="text" name="support_person" value="{{ patient.get('birth_plan', {}).get('support_person', '') }}" placeholder="Partner, family member, doula..." pattern="[A-Za-z\s,]+" title="Letters only" style="width: 100%; padding: 10px; margin: 5px 0;">
+        
+        <label><strong>Special Requests:</strong></label>
+        <textarea name="special_requests" rows="3" style="width: 100%; padding: 10px; margin: 5px 0;" placeholder="Any special requests or preferences...">{{ patient.get('birth_plan', {}).get('special_requests', '') }}</textarea>
+        
+        <button type="submit" style="margin-top: 10px;">Save Birth Plan</button>
+    </form>
+</div>
+
+<!-- FAQ Section -->
+<div class="section" id="faq">
+    <h3>❓ Frequently Asked Questions</h3>
+    {% for item in faq_list %}
+    <details style="margin: 10px 0; padding: 10px; background: #f5f5f5; border-radius: 5px;">
+        <summary style="cursor: pointer; font-weight: bold; color: #667eea;">{{ item.q }}</summary>
+        <p style="margin: 10px 0 0 0;">{{ item.a }}</p>
+    </details>
+    {% endfor %}
+</div>
+
+<!-- Educational Videos -->
+<div class="section" id="videos">
+    <h3>📺 Educational Videos</h3>
+    <p style="margin-bottom: 16px; color: #6b7280;">Curated video resources to help you understand your condition and prepare for your journey.</p>
+    <div>
+        <a href="https://www.youtube.com/results?search_query=pulmonary+hypertension+pregnancy" target="_blank" style="display: block; background: linear-gradient(135deg, #dbeafe, #eff6ff); padding: 20px 24px; border-radius: 14px; text-decoration: none; color: #1e40af; margin-bottom: 12px; border: 1px solid #bfdbfe; transition: all 0.2s;">
+            <span style="font-size: 2em; vertical-align: middle; margin-right: 14px;">🫁</span>
+            <strong style="font-size: 1.05em;">Understanding PH in Pregnancy</strong>
+            <span style="float: right; opacity: 0.5; font-size: 1.2em;">→</span>
+        </a>
+        <a href="https://www.youtube.com/results?search_query=pregnancy+breathing+exercises" target="_blank" style="display: block; background: linear-gradient(135deg, #d1fae5, #ecfdf5); padding: 20px 24px; border-radius: 14px; text-decoration: none; color: #065f46; margin-bottom: 12px; border: 1px solid #a7f3d0; transition: all 0.2s;">
+            <span style="font-size: 2em; vertical-align: middle; margin-right: 14px;">🧘</span>
+            <strong style="font-size: 1.05em;">Breathing Exercises</strong>
+            <span style="float: right; opacity: 0.5; font-size: 1.2em;">→</span>
+        </a>
+        <a href="https://www.youtube.com/results?search_query=preparing+for+labor+delivery" target="_blank" style="display: block; background: linear-gradient(135deg, #ffedd5, #fff7ed); padding: 20px 24px; border-radius: 14px; text-decoration: none; color: #9a3412; margin-bottom: 12px; border: 1px solid #fed7aa; transition: all 0.2s;">
+            <span style="font-size: 2em; vertical-align: middle; margin-right: 14px;">👶</span>
+            <strong style="font-size: 1.05em;">Preparing for Delivery</strong>
+            <span style="float: right; opacity: 0.5; font-size: 1.2em;">→</span>
+        </a>
+    </div>
+</div>
+<div class="section" id="chat">
+        <h3>💬 Community Support Chat</h3>
+        <p style="background: #fff3e0; padding: 15px; border-radius: 5px; margin-bottom: 15px;">
+            <strong>Supervised Community:</strong> Connect with other patients on similar journeys. All messages are monitored by clinicians to ensure accurate, supportive information. Share experiences, ask questions, and support each other!
+        </p>
+        
+        <div class="chat-container">
+            {% if all_messages %}
+                {% for msg in all_messages[-20:] %}
+                <div class="chat-message {% if msg.is_clinician %}clinician{% endif %} {% if msg.get('is_alert') %}" style="background: #ffebee; border-left: 4px solid #f44336;{% elif msg.get('is_confirmation') %}" style="background: #e8f5e9; border-left: 4px solid #4caf50;{% endif %}">
+                    <strong>{% if msg.is_clinician %}👨‍⚕️ Clinician{% elif msg.username == 'SYSTEM' %}🤖 System{% else %}{{ msg.username }}{% endif %}</strong>
+                    <span style="color: #999; font-size: 0.85em; float: right;">{{ msg.timestamp }}</span>
+                    {% if (msg.username == current_user and msg.get('can_delete', True)) or (msg.get('owner') == current_user and msg.get('can_delete', True)) or msg.get('is_clinician') %}
+                    <form method="POST" action="/delete_message" style="display: inline; float: right; margin-right: 10px;">
+                        <input type="hidden" name="message_index" value="{{ msg.original_index }}">
+                        <input type="hidden" name="message_owner" value="{{ msg.user_owner }}">
+                        <input type="hidden" name="is_clinician" value="false">
+                        <button type="submit" style="background: #f44336; padding: 2px 8px; font-size: 0.8em;">Delete</button>
+                    </form>
+                    {% endif %}
+                    <p style="margin: 5px 0 0 0;">{{ msg.text }}</p>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p><em>No messages yet. Be the first to share!</em></p>
+            {% endif %}
+        </div>
+        
+        {% if session.get('chat_error') %}
+        <div style="background: #ffebee; color: #c62828; padding: 15px; border-radius: 5px; margin: 15px 0; border-left: 4px solid #c62828;">
+            <strong>⚠️ Message not sent:</strong> {{ session.pop('chat_error') }}
+        </div>
+        {% endif %}
+        
+        <form method="POST" action="/send_message" style="margin-top: 15px;">
+            <textarea name="message" rows="3" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 5px;" placeholder="Share your thoughts, ask questions, or offer support..." required></textarea>
+            
+            {% if patient.get('emergency_contacts') and patient.emergency_contacts|length > 0 %}
+            <div style="margin: 10px 0; padding: 10px; background: #fff3e0; border-radius: 5px;">
+                <label style="cursor: pointer;">
+                    <input type="checkbox" name="notify_emergency" value="true">
+                    <strong>Also notify my emergency contacts</strong> (they'll receive a gentle check-in message)
+                </label>
+            </div>
+            {% endif %}
+            
+            <button type="submit" style="margin-top: 10px;">Send Message</button>
+        </form>
+        <p style="font-size: 0.85em; color: #666; margin-top: 10px;">
+            <em>⚠️ Reminder: This chat is for support and sharing experiences. Always consult your care team for medical advice.</em>
+        </p>
+        <p style="font-size: 0.85em; color: #f44336; margin-top: 5px; background: #ffebee; padding: 10px; border-radius: 5px;">
+            <strong>🆘 Crisis Support:</strong> If you're experiencing thoughts of self-harm or depression, your message will be immediately flagged and sent to your care team. For immediate help, call the National Suicide Prevention Lifeline: <strong>988</strong>
+        </p>
+    </div>
+    </div>
+    </div>
+</body>
+</html>
